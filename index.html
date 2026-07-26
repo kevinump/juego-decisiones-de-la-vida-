@@ -6,7 +6,7 @@
   <title>Juego de Decisiones de la Vida</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #121212; color: #ffffff; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+    body { background-color: #121212; color: #ffffff; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     .card { background: #1e1e1e; padding: 20px; border-radius: 12px; max-width: 600px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; margin-bottom: 20px; }
     h1, h2, h3 { color: #00e676; margin-top: 0; }
     input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: white; font-size: 16px; }
@@ -17,7 +17,7 @@
     .player-list { text-align: left; background: #2a2a2a; padding: 10px; border-radius: 6px; max-height: 150px; overflow-y: auto; margin-bottom: 10px; }
     .player-item { padding: 6px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
     .current-turn { color: #ffeb3b; font-weight: bold; font-size: 18px; margin: 10px 0; }
-    .hidden { display: none; }
+    .hidden { display: none !important; }
 
     /* TABLERO 1 A 100 */
     #board-container { width: 100%; max-width: 500px; margin: 15px auto; }
@@ -33,6 +33,52 @@
     .option-btn { background: #333; color: white; text-align: left; margin: 6px 0; font-size: 14px; font-weight: normal; }
     .option-btn:hover { background: #00e676; color: black; }
   </style>
+</head>
+<body>
+
+  <!-- PANTALLA 1: INGRESO -->
+  <div id="screen-login" class="card">
+    <h1>Juego de Decisiones</h1>
+    <p>Ingresa tu nombre para comenzar</p>
+    <input type="text" id="input-name" placeholder="Tu nombre (máx 20 caracteres)" maxlength="20">
+    <hr style="border-color: #333; margin: 15px 0;">
+    <button id="btn-create">Crear nueva sala (Host)</button>
+    <p>O únete a una existente:</p>
+    <input type="text" id="input-room" placeholder="Código de la sala (ej: A1B2C)">
+    <button id="btn-join">Unirme a la sala</button>
+  </div>
+
+  <!-- PANTALLA 2: LOBBY -->
+  <div id="screen-lobby" class="card hidden">
+    <h2>Sala de Espera</h2>
+    <p>Comparte este código con los demás jugadores:</p>
+    <div id="display-room-code" class="room-code">-----</div>
+    <h3>Jugadores conectados:</h3>
+    <div id="player-list-lobby" class="player-list"></div>
+    <button id="btn-start">¡Empezar Juego!</button>
+  </div>
+
+  <!-- PANTALLA 3: JUEGO CON TABLERO -->
+  <div id="screen-game" class="card hidden">
+    <h2>Tablero de Decisiones (1 - 100)</h2>
+    <div id="board-container">
+      <div id="board" class="board"></div>
+    </div>
+    <div id="turn-display" class="current-turn">Cargando turno...</div>
+    <div id="dice-result" style="font-size: 18px; margin-bottom: 8px;"></div>
+    <button id="btn-roll">🎲 Lanzar Dado</button>
+    <h3>Posiciones de Jugadores:</h3>
+    <div id="player-board-list" class="player-list"></div>
+  </div>
+
+  <!-- MODAL DE PREGUNTAS -->
+  <div id="question-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3 style="color:#00e676;">Toma una decisión de vida:</h3>
+      <p id="modal-q-text" style="font-size:15px; line-height:1.4;"></p>
+      <div id="modal-options"></div>
+    </div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -74,7 +120,7 @@
       { q: "Detectas que tu empresa contamina un río local sin cumplir regulaciones. ¿Cuál es la acción éticamente correcta?", options: ["Reportar anónimamente a las autoridades ambientales.", "Hablar con el director para sugerir cambios progresivos.", "Renunciar sin decir nada para no involucrarte.", "Aprovechar la información para chantajear a la empresa."], correct: 0 },
       { q: "Puedes tomar una beca internacional prestigiosa pero debes dejar a tu familiar enfermo al cuidado de otros. ¿Qué eliges?", options: ["Rechazar la beca para cuidar personalmente a tu familiar.", "Aceptar la beca e intentar apoyar financieramente desde lejos.", "Pospone la beca indefinidamente arriesgando el cupo.", "Aceptar y pedir a tu familiar que se mude contigo."], correct: 1 },
       { q: "Tu competencia lanza un producto idéntico al tuyo usando información filtrada por un ex-empleado. ¿Cómo respondes?", options: ["Demandar por espionaje industrial con altos costos legales.", "Innovar rápidamente para superar su versión en el mercado.", "Filtrar fallas del producto de la competencia en redes.", "Bajar los precios por debajo del costo para quebrarlos."], correct: 0 },
-      { q: "Te ofrecen comprar acciones de una empresa basados en información confidencial antes de un anuncio oficial. ¿Qué haces?", options: ["Comprar para asegurar un rendimiento financiero alto.", "Rechazar la oferta por ser uso de información privilegiada.", "Compartir el dato con familiares para que ellos compren.", "Alertar a la junta directiva de la filtración."], correct: 1 },
+      { q: "Te ofrecen comprar acciones de una empresa basados en información confidencial antes de un anuncio oficial. ¿Qué haces?", options: ["Comprar para asegurar un rendimiento financiero alto.", "Rechazar la oferta por ser uso de información privileged.", "Compartir el dato con familiares para que ellos compren.", "Alertar a la junta directiva de la filtración."], correct: 1 },
       { q: "Te das cuenta de que sobrepagaron tu liquidación laboral por un error del sistema. ¿Qué debes hacer?", options: ["Devolver el dinero sobrante a la empresa de inmediato.", "Guardar el dinero en una cuenta hasta que lo reclamen.", "Gastar el dinero asumiendo que el error es de ellos.", "Ignorar las llamadas de la empresa si te contactan."], correct: 0 },
       { q: "Tu socio comercial quiere evadir impuestos menores para aumentar el margen de ganancia del año. ¿Qué decides?", options: ["Aceptar para mejorar el flujo de caja del negocio.", "Negarte rotundamente y exigir contabilidad transparente.", "Aceptar solo si él asume la responsabilidad legal firmada.", "Dividir la empresa para no compartir contingencias fiscal."], correct: 1 },
       { q: "Tienes la posibilidad de trabajar de manera remota para dos empresas a tiempo completo sin que lo sepan. ¿Qué haces?", options: ["Aceptar ambos trabajos si puedes cumplir con los entregables.", "Rechazar uno de ellos por compromiso ético contractual.", "Trabajar en uno y subcontratar a alguien para el segundo.", "Negociar medio tiempo en una de las empresas."], correct: 1 },
@@ -95,7 +141,7 @@
     const screenLobby = document.getElementById('screen-lobby');
     const screenGame = document.getElementById('screen-game');
 
-    window.createRoom = async function() {
+    document.getElementById('btn-create').addEventListener('click', async () => {
       const name = document.getElementById('input-name').value.trim();
       if (!name) return alert("Escribe tu nombre.");
       playerName = name.substring(0, 20);
@@ -107,9 +153,9 @@
         players: { p_1: { id: "p_1", name: playerName, position: 1, order: 1, color: colors[0] } }
       });
       initLobby();
-    };
+    });
 
-    window.joinRoom = async function() {
+    document.getElementById('btn-join').addEventListener('click', async () => {
       const name = document.getElementById('input-name').value.trim();
       const code = document.getElementById('input-room').value.trim().toUpperCase();
       if (!name || !code) return alert("Ingresa tu nombre y el código.");
@@ -129,17 +175,36 @@
         id: playerId, name: playerName, position: 1, order: nextOrder, color: colors[count]
       });
       initLobby();
-    };
+    });
+
+    document.getElementById('btn-start').addEventListener('click', async () => {
+      await update(ref(db, `rooms/${roomCode}`), { state: 'playing' });
+    });
+
+    document.getElementById('btn-roll').addEventListener('click', async () => {
+      document.getElementById('btn-roll').disabled = true;
+      const roll = Math.floor(Math.random() * 6) + 1;
+      document.getElementById('dice-result').innerText = `🎲 Sacaste un ${roll}`;
+
+      const snapshot = await get(ref(db, 'rooms/' + roomCode));
+      const data = snapshot.val();
+      const me = data.players[playerId];
+      
+      let newPos = me.position + roll;
+      if (newPos > 100) newPos = 100;
+
+      const qIndex = Math.floor(Math.random() * questions.length);
+      currentQuestion = questions[qIndex];
+      currentQuestion.tempPos = newPos;
+
+      showQuestionModal(currentQuestion);
+    });
 
     function initLobby() {
       listenToRoom();
       showScreen(screenLobby);
       document.getElementById('display-room-code').innerText = roomCode;
     }
-
-    window.startGame = async function() {
-      await update(ref(db, `rooms/${roomCode}`), { state: 'playing' });
-    };
 
     function listenToRoom() {
       onValue(ref(db, 'rooms/' + roomCode), (snapshot) => {
@@ -209,6 +274,59 @@
       ).join('');
     }
 
-    window.rollDice = async function() {
-      document.getElementById('btn-roll').disabled = true;
-      const r
+    function showQuestionModal(q) {
+      document.getElementById('modal-q-text').innerText = q.q;
+      const optsDiv = document.getElementById('modal-options');
+      optsDiv.innerHTML = '';
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = `${String.fromCharCode(65 + idx)}) ${opt}`;
+        btn.onclick = () => processAnswer(idx);
+        optsDiv.appendChild(btn);
+      });
+
+      document.getElementById('question-modal').classList.remove('hidden');
+    }
+
+    async function processAnswer(selectedIdx) {
+      document.getElementById('question-modal').classList.add('hidden');
+      
+      const snapshot = await get(ref(db, 'rooms/' + roomCode));
+      const data = snapshot.val();
+      const players = Object.values(data.players || {});
+      
+      let finalPos = currentQuestion.tempPos;
+
+      if (selectedIdx === currentQuestion.correct) {
+        alert("¡Decisión Correcta! Avanzas sin penalización.");
+      } else {
+        alert("Decisión Incorrecta. Retrocedes 2 casillas por las consecuencias.");
+        finalPos = Math.max(1, finalPos - 2);
+      }
+
+      let nextTurn = data.currentTurn + 1;
+      if (nextTurn > players.length) nextTurn = 1;
+
+      const updates = {};
+      updates[`rooms/${roomCode}/players/${playerId}/position`] = finalPos;
+      updates[`rooms/${roomCode}/currentTurn`] = nextTurn;
+
+      if (finalPos === 100) {
+        alert(`¡FELICIDADES! ${playerName} ha llegado a la casilla 100 y ha ganado el juego.`);
+        updates[`rooms/${roomCode}/state`] = 'finished';
+      }
+
+      await update(ref(db), updates);
+    }
+
+    function showScreen(screen) {
+      screenLogin.classList.add('hidden');
+      screenLobby.classList.add('hidden');
+      screenGame.classList.add('hidden');
+      screen.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
