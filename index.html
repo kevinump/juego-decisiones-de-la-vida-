@@ -3,30 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego de Decisiones Multijugador</title>
-  <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #121212; color: #ffffff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; margin-bottom: 20px; }
-    h1, h2 { color: #00e676; margin-top: 0; }
-    input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #333; back…
-[8:14 p. m., 25/7/2026] Kevin: <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego de Decisiones de la Vida</title>
-  <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #121212; color: #ffffff; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; max-width: 600px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; margin-bottom: 20px; }
-    h1, h2, h3 { color: #00e676; margin-top: 0; }
-    input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #333; ba…
-[8:30 p. m., 25/7/2026] Kevin: <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Juego de Decisiones de la Vida</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -80,10 +56,8 @@
     let playerName = "";
     let currentQuestion = null;
 
-    // Colores para las fichas de hasta 15 jugadores
     const colors = ["#ff5252", "#ff4081", "#e040fb", "#7c4dff", "#536def", "#448aff", "#40c4ff", "#1de9b6", "#64dd17", "#aeea00", "#ffd600", "#ffab00", "#ff6d00", "#8d6e63", "#00e676"];
 
-    // 30 Preguntas complejas de Decisiones de la Vida
     const questions = [
       { q: "Descubres un error financiero en tu empresa que beneficia tus ingresos pero perjudica a clientes a largo plazo. ¿Qué haces?", options: ["Guardar silencio para no afectar tu puesto.", "Denunciar internamente asumiendo el riesgo laboral.", "Aprovechar la falla mientras dure y luego renunciar.", "Transferir la responsabilidad a tu superior directo."], correct: 1 },
       { q: "Tienes la oportunidad de un ascenso prometedor, pero exige trabajar 80 horas semanales afectando tu salud mental. ¿Qué decides?", options: ["Aceptar sacrificando salud por éxito financiero.", "Rechazarlo priorizando tu bienestar personal.", "Aceptar temporalmente e intentar delegar todo.", "Pedir el puesto pero negociar no cumplir las metas."], correct: 1 },
@@ -149,9 +123,9 @@
 
       roomCode = code;
       const nextOrder = count + 1;
-      playerId = p_${nextOrder};
+      playerId = `p_${nextOrder}`;
 
-      await update(ref(db, rooms/${roomCode}/players/${playerId}), {
+      await update(ref(db, `rooms/${roomCode}/players/${playerId}`), {
         id: playerId, name: playerName, position: 1, order: nextOrder, color: colors[count]
       });
       initLobby();
@@ -164,7 +138,7 @@
     }
 
     window.startGame = async function() {
-      await update(ref(db, rooms/${roomCode}), { state: 'playing' });
+      await update(ref(db, `rooms/${roomCode}`), { state: 'playing' });
     };
 
     function listenToRoom() {
@@ -174,7 +148,7 @@
 
         const players = Object.values(data.players || {});
         document.getElementById('player-list-lobby').innerHTML = players.map(p => 
-          <div class="player-item"><span>${p.name}</span> <span style="color:${p.color}">● #${p.order}</span></div>
+          `<div class="player-item"><span>${p.name}</span> <span style="color:${p.color}">● #${p.order}</span></div>`
         ).join('');
 
         if (data.state === 'playing') {
@@ -185,16 +159,14 @@
       });
     }
 
-    // Dibujar tablero de 100 casillas
     function renderBoard(players) {
       const boardEl = document.getElementById('board');
       boardEl.innerHTML = '';
       
-      // Crear casillas del 1 al 100
       for (let i = 100; i >= 1; i--) {
         const cell = document.createElement('div');
         cell.className = 'cell';
-        cell.id = cell-${i};
+        cell.id = `cell-${i}`;
         
         const num = document.createElement('span');
         num.className = 'cell-number';
@@ -203,16 +175,15 @@
 
         const tokensDiv = document.createElement('div');
         tokensDiv.className = 'tokens-container';
-        tokensDiv.id = tokens-${i};
+        tokensDiv.id = `tokens-${i}`;
         cell.appendChild(tokensDiv);
 
         boardEl.appendChild(cell);
       }
 
-      // Colocar fichas
       players.forEach(p => {
         const pos = p.position || 1;
-        const container = document.getElementById(tokens-${pos});
+        const container = document.getElementById(`tokens-${pos}`);
         if (container) {
           const token = document.createElement('div');
           token.className = 'token';
@@ -229,9 +200,15 @@
       const currentPlayer = players.find(p => p.order === currentTurnOrder);
 
       if (currentPlayer) {
-        document.getElementById('turn-display').innerText = Turno de: ${currentPlayer.name};
+        document.getElementById('turn-display').innerText = `Turno de: ${currentPlayer.name}`;
         document.getElementById('btn-roll').disabled = (currentPlayer.id !== playerId);
       }
 
       document.getElementById('player-board-list').innerHTML = players.map(p => 
-        `<div class="player-item"><span style="colo
+        `<div class="player-item"><span style="color:${p.color}">● ${p.name}</span> <b>Casilla: ${p.position}</b></div>`
+      ).join('');
+    }
+
+    window.rollDice = async function() {
+      document.getElementById('btn-roll').disabled = true;
+      const r
