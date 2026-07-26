@@ -24,8 +24,14 @@
     .board { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; background: #333; border: 2px solid #00e676; border-radius: 8px; padding: 2px; }
     .cell { background: #242424; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #888; position: relative; border-radius: 2px; }
     .cell-number { font-size: 8px; position: absolute; top: 1px; left: 2px; }
-    .tokens-container { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; margin-top: 8px; }
+    .cell-icon { font-size: 10px; margin-top: 2px; }
+    .tokens-container { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; margin-top: 2px; }
     .token { width: 10px; height: 10px; border-radius: 50%; border: 1px solid white; font-size: 7px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: black; }
+
+    /* Estilos especiales por casilla */
+    .cell-q { background: #2b2810; border: 1px solid #ffd600; }
+    .cell-boost { background: #102b17; border: 1px solid #00e676; }
+    .cell-trap { background: #2b1010; border: 1px solid #ff5252; }
 
     /* MODAL PREGUNTAS */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 100; }
@@ -61,6 +67,7 @@
   <!-- PANTALLA 3: JUEGO CON TABLERO -->
   <div id="screen-game" class="card hidden">
     <h2>Tablero de Decisiones (1 - 100)</h2>
+    <p style="font-size:12px; color:#aaa; margin-top:-10px;">❓ Pregunta | 🚀 Avanzas 3 | 🛑 Retrocedes 3</p>
     <div id="board-container">
       <div id="board" class="board"></div>
     </div>
@@ -74,7 +81,7 @@
   <!-- MODAL DE PREGUNTAS -->
   <div id="question-modal" class="modal hidden">
     <div class="modal-content">
-      <h3 style="color:#00e676;">Toma una decisión de vida:</h3>
+      <h3 style="color:#00e676;">❓ ¡Casilla de Pregunta! Toma tu decisión:</h3>
       <p id="modal-q-text" style="font-size:15px; line-height:1.4;"></p>
       <div id="modal-options"></div>
     </div>
@@ -101,40 +108,31 @@
     let playerId = null;
     let playerName = "";
     let currentQuestion = null;
+    let pendingPosition = 1;
 
     const colors = ["#ff5252", "#ff4081", "#e040fb", "#7c4dff", "#536def", "#448aff", "#40c4ff", "#1de9b6", "#64dd17", "#aeea00", "#ffd600", "#ffab00", "#ff6d00", "#8d6e63", "#00e676"];
 
+    // Definición de casillas especiales en el tablero
+    const questionCells = [4, 8, 12, 16, 21, 26, 31, 37, 42, 48, 53, 58, 64, 70, 75, 81, 87, 93, 97];
+    const boostCells = [9, 25, 45, 62, 83]; // 🚀 +3 casillas
+    const trapCells = [15, 34, 55, 73, 91]; // 🛑 -3 casillas
+
     const questions = [
-      { q: "Descubres un error financiero en tu empresa que beneficia tus ingresos pero perjudica a clientes a largo plazo. ¿Qué haces?", options: ["Guardar silencio para no afectar tu puesto.", "Denunciar internamente asumiendo el riesgo laboral.", "Aprovechar la falla mientras dure y luego renunciar.", "Transferir la responsabilidad a tu superior directo."], correct: 1 },
-      { q: "Tienes la oportunidad de un ascenso prometedor, pero exige trabajar 80 horas semanales afectando tu salud mental. ¿Qué decides?", options: ["Aceptar sacrificando salud por éxito financiero.", "Rechazarlo priorizando tu bienestar personal.", "Aceptar temporalmente e intentar delegar todo.", "Pedir el puesto pero negociar no cumplir las metas."], correct: 1 },
-      { q: "Un amigo cercano cometió un delito no grave y te pide refugio sin revelar detalles a la policía. ¿Cómo actúas?", options: ["Refugiarlo incondicionalmente por lealtad.", "Exigirle que se entregue antes de prestarle ayuda.", "Llamar a las autoridades a sus espaldas inmediatamente.", "Ignorar su petición y cortar todo contacto."], correct: 1 },
-      { q: "Te ofrecen una inversión con retornos del 50% mensual pero sospechas que es un esquema piramidal. ¿Qué haces?", options: ["Invertir dinero que estés dispuesto a perder.", "Denunciar la plataforma ante entidades reguladoras.", "Invertir y retirar ganancias antes de que colapse.", "Recomendarla a amigos para comisionar."], correct: 1 },
-      { q: "Tu pareja quiere mudarse a otro país por sus sueños, pero tú tienes estabilidad donde estás. ¿Cuál es la decisión correcta?", options: ["Acompañarla aunque signifique empezar de cero sin garantías.", "Pedirle que rechace su sueño por la estabilidad juntos.", "Terminar la relación de mutuo acuerdo para no estancarse.", "Aceptar una relación a distancia indefinida."], correct: 2 },
-      { q: "Heredas un negocio familiar en quiebra que requiere vender tus activos personales para salvarlo. ¿Qué decides?", options: ["Liquidar el negocio para proteger tus finanzas individuales.", "Inyectar todo tu capital personal por valor sentimental.", "Buscar inversionistas cediendo el control total.", "Pedir préstamos de alto riesgo a corto plazo."], correct: 0 },
-      { q: "Un compañero toma el crédito de tu proyecto ante la gerencia y es ascendido por ello. ¿Cómo reaccionas?", options: ["Exponer la prueba formalmente ante Recursos Humanos.", "Confrontarlo públicamente en la siguiente reunión.", "Dejarlo pasar para no generar mal clima de trabajo.", "Sabotear sus próximos proyectos sutilmente."], correct: 0 },
-      { q: "Te ofrecen vender un producto médico sin certificar que sabes que es inocuo pero ilegal. ¿Aceptas?", options: ["Sí, si la ganancia compensa el riesgo legal.", "No, la falta de certificación implica riesgo ético inaceptable.", "Solo si el comprador firma una exención de responsabilidad.", "Venderlo en mercados extranjeros con menos regulación."], correct: 1 },
-      { q: "Tu mejor amigo te confiesa que le es infiel a su cónyuge, quien también es tu amigo. ¿Qué haces?", options: ["Contarle la verdad a su cónyuge inmediatamente.", "Exigirle a tu amigo que confiese o lo harás tú.", "Mantenerte completamente al margen del conflicto.", "Aconsejarle encubrirlo mejor para no romper la familia."], correct: 1 },
-      { q: "Encuentras un bolso con $10,000 en efectivo y una identificación en un lugar solitario. ¿Cómo procedes?", options: ["Entregar todo intacto en la estación de policía.", "Quedarte el dinero y enviar los documentos por correo.", "Buscar al dueño por redes sociales por tu cuenta.", "Dejar el bolso exactamente donde lo encontraste."], correct: 0 },
-      { q: "Tienes la opción de comprar una vivienda barata pero en una zona con riesgo de devaluación futura. ¿Qué haces?", options: ["Comprar esperando que la zona mejore con los años.", "Alquilar en lugar de comprar para no comprometer capital.", "Comprar e intentar vender de inmediato por un margen mínimo.", "Invertir el dinero en fondos de renta variable."], correct: 1 },
-      { q: "Un familiar te pide ser fiador/codeudor para un préstamo sustancial de emprendimiento. ¿Aceptas?", options: ["Sí, la familia siempre se apoya incondicionalmente.", "No, nunca se debe arriesgar el patrimonio por terceros.", "Sí, pero exigiendo el 50% de las acciones del negocio.", "Prestarle dinero propio en lugar de firmar la deuda."], correct: 1 },
-      { q: "Detectas que tu empresa contamina un río local sin cumplir regulaciones. ¿Cuál es la acción éticamente correcta?", options: ["Reportar anónimamente a las autoridades ambientales.", "Hablar con el director para sugerir cambios progresivos.", "Renunciar sin decir nada para no involucrarte.", "Aprovechar la información para chantajear a la empresa."], correct: 0 },
-      { q: "Puedes tomar una beca internacional prestigiosa pero debes dejar a tu familiar enfermo al cuidado de otros. ¿Qué eliges?", options: ["Rechazar la beca para cuidar personalmente a tu familiar.", "Aceptar la beca e intentar apoyar financieramente desde lejos.", "Pospone la beca indefinidamente arriesgando el cupo.", "Aceptar y pedir a tu familiar que se mude contigo."], correct: 1 },
-      { q: "Tu competencia lanza un producto idéntico al tuyo usando información filtrada por un ex-empleado. ¿Cómo respondes?", options: ["Demandar por espionaje industrial con altos costos legales.", "Innovar rápidamente para superar su versión en el mercado.", "Filtrar fallas del producto de la competencia en redes.", "Bajar los precios por debajo del costo para quebrarlos."], correct: 0 },
-      { q: "Te ofrecen comprar acciones de una empresa basados en información confidencial antes de un anuncio oficial. ¿Qué haces?", options: ["Comprar para asegurar un rendimiento financiero alto.", "Rechazar la oferta por ser uso de información privileged.", "Compartir el dato con familiares para que ellos compren.", "Alertar a la junta directiva de la filtración."], correct: 1 },
-      { q: "Te das cuenta de que sobrepagaron tu liquidación laboral por un error del sistema. ¿Qué debes hacer?", options: ["Devolver el dinero sobrante a la empresa de inmediato.", "Guardar el dinero en una cuenta hasta que lo reclamen.", "Gastar el dinero asumiendo que el error es de ellos.", "Ignorar las llamadas de la empresa si te contactan."], correct: 0 },
-      { q: "Tu socio comercial quiere evadir impuestos menores para aumentar el margen de ganancia del año. ¿Qué decides?", options: ["Aceptar para mejorar el flujo de caja del negocio.", "Negarte rotundamente y exigir contabilidad transparente.", "Aceptar solo si él asume la responsabilidad legal firmada.", "Dividir la empresa para no compartir contingencias fiscal."], correct: 1 },
-      { q: "Tienes la posibilidad de trabajar de manera remota para dos empresas a tiempo completo sin que lo sepan. ¿Qué haces?", options: ["Aceptar ambos trabajos si puedes cumplir con los entregables.", "Rechazar uno de ellos por compromiso ético contractual.", "Trabajar en uno y subcontratar a alguien para el segundo.", "Negociar medio tiempo en una de las empresas."], correct: 1 },
-      { q: "Descubres que un producto de tu inventario tiene un defecto estético menor que no afecta su uso. ¿Qué haces?", options: ["Venderlo al precio completo sin mencionar el detalle.", "Ofrecerlo con descuento notificando el defecto explícitamente.", "Desechar todo el lote para no arriesgar la reputación.", "Donarlo a una caridad para deducir impuestos."], correct: 1 },
-      { q: "Para salvar tu negocio requieres despedir al 30% de la plantilla, incluyendo empleados antiguos. ¿Cómo actúas?", options: ["Ejecutar los despidos con indemnización justa según ley.", "Reducir los sueldos de todos al 50% sin despedir a nadie.", "Pedir créditos extremos para mantener la nómina actual.", "Cerrar la empresa completamente para ser equitativo."], correct: 0 },
-      { q: "Un cliente importante te pide alterar un informe de auditoría a cambio de renovar su contrato anual. ¿Qué haces?", options: ["Rechazar la alteración aunque signifique perder al cliente.", "Aceptar la modificación leve si no genera impacto legal.", "Cobrar una tarifa extra por asumir el riesgo de la firma.", "Delegar el informe a otro consultor para no firmar tú."], correct: 0 },
-      { q: "Te ofrecen comprar un vehículo usado a excelente precio pero sospechas que tiene un origen dudoso. ¿Qué decides?", options: ["Comprarlo si la documentación visible parece en regla.", "Exigir una revisión policial completa antes de cualquier pago.", "Comprarlo y venderlo inmediatamente a un tercero.", "Pagar en efectivo para no dejar rastro bancario."], correct: 1 },
-      { q: "Puedes elegir entre un trabajo estable de bajo salario o un emprendimiento propio con 80% de probabilidad de fracaso. ¿Qué eliges?", options: ["El trabajo estable para mantener seguridad económica.", "El emprendimiento asumiendo el riesgo por independencia.", "Trabajar en lo estable mientras emprendes a tiempo parcial.", "Buscar subsidios gubernamentales antes de decidir."], correct: 2 },
-      { q: "Descubres que el testamento de tu padre favorece injustamente a un hermano sobre los demás. ¿Qué propuesta haces?", options: ["Impugnar el testamento en los tribunales correspondientes.", "Proponer redistribuir la herencia equitativamente de mutuo acuerdo.", "Aceptar la voluntad del difunto sin generar discusiones.", "Exigir compensación económica privada a tu hermano."], correct: 1 },
-      { q: "En un proyecto en equipo, el líder asigna las tareas más difíciles a ti y las más fáciles a sus allegados. ¿Qué haces?", options: ["Afrontar el reto para destacar profesionalmente por tu capacidad.", "Exigir redistribución equitativa antes de iniciar las labores.", "Hacer solo la parte proporcional que te correspondería.", "Quejarte con la gerencia por favoritismo manifiesto."], correct: 1 },
-      { q: "Te ofrecen un puesto de alto mando pero requieres mentir sobre un título universitario en tu currículum. ¿Aceptas?", options: ["Sí, si tienes la experiencia práctica para desempeñar el cargo.", "No, la falsificación de información anula la legitimidad laboral.", "Sí, e inscribirte en la universidad para obtenerlo rápido.", "Presentar un certificado falso comprado en línea."], correct: 1 },
-      { q: "Tu empresa te pide trasladarte a una ciudad con alta tasa de criminalidad a cambio del doble de sueldo. ¿Qué decides?", options: ["Aceptar el traslado y tomar medidas de seguridad privadas.", "Rechazar la propuesta priorizando tu tranquilidad e integridad.", "Aceptar por un año para ahorrar y luego renunciar.", "Pedir trabajar de forma remota desde tu ciudad actual."], correct: 1 },
-      { q: "Un proveedor te ofrece un 'regalo' en efectivo por elegir su cotización sobre otras más baratas. ¿Cómo reaccionas?", options: ["Aceptar el dinero como una comisión personal de gestión.", "Rechazar la oferta y reportar el intento de soborno.", "Aceptar pero solicitar que descuenten el monto de la factura.", "Negociar un regalo de mayor valor para cerrar el trato."], correct: 1 },
-      { q: "Tienes la oportunidad de comprar la patente de un invento a un creador desesperado por dinero muy por debajo de su valor. ¿Qué haces?", options: ["Comprarla al precio bajo aprovechando la oportunidad de mercado.", "Ofrecer un precio justo o un esquema de regalías continuas.", "Actuar como intermediario para venderla a un tercero.", "Buscar fallas en la patente para replicarla gratis."], correct: 1 }
+      { q: "El profesor dejó la respuesta del examen en el tablero por error. ¿Qué haces?", options: ["Copiarla rápido y pasarla.", "Avisarle amablemente para que la borre.", "Vender la respuesta.", "Ignorarlo y resolver solo."], correct: 1 },
+      { q: "Te dan el cambio de más en la tienda del colegio. ¿Qué decides?", options: ["Quedarte con el dinero extra.", "Avisarle al tendero y devolverlo.", "Gastarlo con tus amigos.", "Guardarlo para luego."], correct: 1 },
+      { q: "Tu amigo te ruega copiar en el examen final. ¿Cómo reaccionas?", options: ["Dejarlo copiar todo.", "Negarte pero ofrecerte a explicarle la próxima.", "Pasarle las respuestas mal.", "Cobrarle por favor."], correct: 1 },
+      { q: "Rompes una ventana con el balón jugando donde no debías. ¿Qué haces?", options: ["Culpar a otro.", "Asumir la culpa y responder.", "Salir corriendo.", "Decir que voló solo."], correct: 1 },
+      { q: "Tu amigo le es infiel a su pareja del colegio. ¿Qué actitud tomas?", options: ["Regar el chisme.", "Aconsejarle que lo solucione de frente.", "Ayudarle con excusas.", "Enviar pruebas anónimas."], correct: 1 },
+      { q: "Encuentras un celular de alta gama en el patio. ¿Cuál es tu decisión?", options: ["Guardarlo o venderlo.", "Llevarlo a coordinación para buscar al dueño.", "Cambiarle la SIM.", "Mirarle la galería."], correct: 1 },
+      { q: "Un integrante del grupo no hizo nada pero pide poner su nombre. ¿Qué haces?", options: ["Ponerlo para no pelear.", "Hablar con él y si no, avisarle al profe.", "Cobrarle por ponerlo.", "Borrarlo a última hora."], correct: 1 },
+      { q: "Un compañero sufre burlas en el grupo de WhatsApp. ¿Cómo actúas?", options: ["Reírte y mandar stickers.", "Escribir para frenar la burla o reportar.", "Salirte del grupo.", "Crear otro grupo para burlarte."], correct: 1 },
+      { q: "Te ofrecen comprar las respuestas del ICFES o examen final. ¿Aceptas?", options: ["Aceptar, la idea es pasar.", "Rechazar y estudiar por tu cuenta.", "Comprarlas solo para verificar.", "Comprarlas en grupo."], correct: 1 },
+      { q: "Tus amigos quieren volarse del colegio a jugar videojuegos. ¿Qué haces?", options: ["Volarte con ellos.", "Quedarte cumpliendo tus clases.", "Irte y volver antes de la salida.", "Sapearlos con el profe."], correct: 1 },
+      { q: "Ves que alguien dejó abierto su Instagram en la sala de sistemas. ¿Qué haces?", options: ["Publicar algo feo.", "Cerrar la sesión de inmediato.", "Revisarle los chats.", "Cambiarle la clave."], correct: 1 },
+      { q: "Ves a una Sra. a la que se le caen $50.000 caminando. ¿Qué haces?", options: ["Ponerle el pie encima.", "Alcanzarla y devolver el dinero.", "Esperar a que se vaya y cogerlo.", "Gritar si se cayeron 10 mil."], correct: 1 },
+      { q: "En el bus ves que le sacan la billetera a alguien. ¿Cómo reaccionas?", options: ["Gritar sin medir riesgos.", "Alertar disimuladamente a la víctima/conductor.", "Quedarte congelado.", "Pedir comisión."], correct: 1 },
+      { q: "Un carro raya el auto de tu vecino y huye. Viste la placa. ¿Qué haces?", options: ["Ignorarlo.", "Darle la placa a tu vecino.", "Chantajear al conductor.", "Publicarlo en redes."], correct: 1 },
+      { q: "En el supermercado no te cobran un producto caro por error. ¿Qué haces?", options: ["Irte feliz.", "Avisarle a la cajera para que lo marque.", "Volver al otro día.", "Decir que te salió gratis."], correct: 1 }
     ];
 
     const screenLogin = document.getElementById('screen-login');
@@ -192,12 +190,28 @@
       
       let newPos = me.position + roll;
       if (newPos > 100) newPos = 100;
+      pendingPosition = newPos;
 
-      const qIndex = Math.floor(Math.random() * questions.length);
-      currentQuestion = questions[qIndex];
-      currentQuestion.tempPos = newPos;
-
-      showQuestionModal(currentQuestion);
+      // Evaluar en qué casilla cayó
+      if (questionCells.includes(newPos)) {
+        // Cayó en PREGUNTA ❓
+        const qIndex = Math.floor(Math.random() * questions.length);
+        currentQuestion = questions[qIndex];
+        showQuestionModal(currentQuestion);
+      } else if (boostCells.includes(newPos)) {
+        // Cayó en TRAMPOLÍN 🚀 (+3)
+        alert("🚀 ¡Casilla de Impulso! Avanzas 3 casillas adicionales.");
+        newPos = Math.min(100, newPos + 3);
+        await finishTurn(newPos, data);
+      } else if (trapCells.includes(newPos)) {
+        // Cayó en TRAMPA 🛑 (-3)
+        alert("🛑 ¡Caíste en una trampa! Retrocedes 3 casillas.");
+        newPos = Math.max(1, newPos - 3);
+        await finishTurn(newPos, data);
+      } else {
+        // Casilla NORMAL
+        await finishTurn(newPos, data);
+      }
     });
 
     function initLobby() {
@@ -233,10 +247,21 @@
         cell.className = 'cell';
         cell.id = `cell-${i}`;
         
+        if (questionCells.includes(i)) cell.classList.add('cell-q');
+        if (boostCells.includes(i)) cell.classList.add('cell-boost');
+        if (trapCells.includes(i)) cell.classList.add('cell-trap');
+
         const num = document.createElement('span');
         num.className = 'cell-number';
         num.innerText = i;
         cell.appendChild(num);
+
+        const icon = document.createElement('span');
+        icon.className = 'cell-icon';
+        if (questionCells.includes(i)) icon.innerText = '❓';
+        else if (boostCells.includes(i)) icon.innerText = '🚀';
+        else if (trapCells.includes(i)) icon.innerText = '🛑';
+        cell.appendChild(icon);
 
         const tokensDiv = document.createElement('div');
         tokensDiv.className = 'tokens-container';
@@ -295,26 +320,31 @@
       
       const snapshot = await get(ref(db, 'rooms/' + roomCode));
       const data = snapshot.val();
-      const players = Object.values(data.players || {});
       
-      let finalPos = currentQuestion.tempPos;
+      let finalPos = pendingPosition;
 
       if (selectedIdx === currentQuestion.correct) {
-        alert("¡Decisión Correcta! Avanzas sin penalización.");
+        alert("¡Decisión Correcta! Ganaste +2 casillas de bono.");
+        finalPos = Math.min(100, finalPos + 2);
       } else {
-        alert("Decisión Incorrecta. Retrocedes 2 casillas por las consecuencias.");
+        alert("Decisión Incorrecta. Retrocedes 2 casillas por mala decisión.");
         finalPos = Math.max(1, finalPos - 2);
       }
 
-      let nextTurn = data.currentTurn + 1;
+      await finishTurn(finalPos, data);
+    }
+
+    async function finishTurn(pos, roomData) {
+      const players = Object.values(roomData.players || {});
+      let nextTurn = roomData.currentTurn + 1;
       if (nextTurn > players.length) nextTurn = 1;
 
       const updates = {};
-      updates[`rooms/${roomCode}/players/${playerId}/position`] = finalPos;
+      updates[`rooms/${roomCode}/players/${playerId}/position`] = pos;
       updates[`rooms/${roomCode}/currentTurn`] = nextTurn;
 
-      if (finalPos === 100) {
-        alert(`¡FELICIDADES! ${playerName} ha llegado a la casilla 100 y ha ganado el juego.`);
+      if (pos === 100) {
+        alert(`¡FELICIDADES! ${playerName} ha llegado a la casilla 100 y ha ganado la partida.`);
         updates[`rooms/${roomCode}/state`] = 'finished';
       }
 
