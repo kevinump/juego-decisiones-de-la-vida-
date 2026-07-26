@@ -3,419 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego de la Vida - Decisiones e Interacción</title>
+  <title>Juego de Decisiones Multijugador</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* Pantalla de Bloqueo / Login */
-    #login-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(44, 62, 80, 0.95);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .login-card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 350px;
-      width: 90%;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-
-    .login-card input {
-      width: 100%;
-      padding: 10px;
-      margin: 15px 0;
-      border: 2px solid #bdc3c7;
-      border-radius: 6px;
-      font-size: 16px;
-      text-align: center;
-    }
-
-    /* Tablero y Controles */
-    .main-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      max-width: 1150px;
-      width: 100%;
-    }
-
-    .board-container {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      position: relative;
-    }
-
-    .board {
-      display: grid;
-      grid-template-columns: repeat(10, 52px);
-      grid-template-rows: repeat(10, 52px);
-      gap: 3px;
-      background-color: #34495e;
-      border: 4px solid #2c3e50;
-      border-radius: 6px;
-      position: relative;
-    }
-
-    .cell {
-      background-color: #ecf0f1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      font-weight: bold;
-      color: #34495e;
-      position: relative;
-      padding: 2px;
-      border-radius: 3px;
-    }
-
-    .cell.decision {
-      background-color: #fff3cd;
-      border: 1px solid #ffc107;
-    }
-
-    .player-token {
-      width: 22px;
-      height: 22px;
-      background-color: #e74c3c;
-      border: 2px solid #ffffff;
-      border-radius: 50%;
-      position: absolute;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-      transition: all 0.3s ease;
-      z-index: 10;
-    }
-
-    .controls-panel {
-      flex: 1;
-      min-width: 300px;
-      max-width: 380px;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .dice-area {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      justify-content: center;
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-    }
-
-    .dice {
-      width: 60px;
-      height: 60px;
-      background-color: #3498db;
-      color: white;
-      font-size: 32px;
-      font-weight: bold;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 10px;
-    }
-
-    button {
-      background-color: #27ae60;
-      color: white;
-      border: none;
-      padding: 12px;
-      font-size: 15px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    button.option-btn {
-      background-color: #3498db;
-      margin-top: 8px;
-      text-align: left;
-    }
-
-    button.option-btn:hover {
-      background-color: #2980b9;
-    }
-
-    button:disabled {
-      background-color: #bdc3c7;
-      cursor: not-allowed;
-    }
-
-    .event-card {
-      background: #f1f9fe;
-      border-left: 5px solid #3498db;
-      padding: 15px;
-      border-radius: 6px;
-      min-height: 140px;
-    }
-
-    @media (max-width: 600px) {
-      .board {
-        grid-template-columns: repeat(10, 32px);
-        grid-template-rows: repeat(10, 32px);
-      }
-      .cell { font-size: 8px; }
-      .player-token { width: 14px; height: 14px; }
-    }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #121212; color: #ffffff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; margin-bottom: 20px; }
+    h1, h2 { color: #00e676; margin-top: 0; }
+    input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: white; font-size: 16px; }
+    button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: none; background: #00e676; color: #000; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #00b359; }
+    button:disabled { background: #555; color: #888; cursor: not-allowed; }
+    .room-code { font-size: 24px; font-weight: bold; color: #00e676; letter-spacing: 2px; }
+    .player-list { text-align: left; background: #2a2a2a; padding: 10px; border-radius: 6px; max-height: 200px; overflow-y: auto; }
+    .player-item { padding: 6px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+    .player-item:last-child { border-bottom: none; }
+    .current-turn { color: #ffeb3b; font-weight: bold; margin: 15px 0; }
+    .hidden { display: none; }
   </style>
-</head>
-<body>
+  
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  <!-- PANTALLA DE ACCESO CONTROLADO -->
-  <div id="login-overlay">
-    <div class="login-card">
-      <h2> Acceso Privado</h2>
-      <p>Ingresa tu código de acceso para entrar al juego:</p>
-      <input type="password" id="access-code" placeholder="Código de acceso">
-      <button onclick="checkAccess()">Entrar al Juego</button>
-      <p id="login-error" style="color: red; display: none; font-size: 13px; margin-top: 10px;">Código incorrecto. Pídele acceso al administrador.</p>
-    </div>
-  </div>
-
-  <h1>Juego de la Vida: Toma de Decisiones</h1>
-
-  <div class="main-container">
-    <div class="board-container">
-      <div id="board" class="board"></div>
-    </div>
-
-    <div class="controls-panel">
-      <div id="status" style="font-weight: bold;">Posición actual: Casilla 1</div>
-
-      <div class="dice-area">
-        <div id="dice" class="dice">⚀</div>
-        <button id="roll-btn" onclick="playTurn()">Lanzar Dado</button>
-      </div>
-
-      <div class="event-card" id="event-card">
-        <h3 id="event-title">¡Bienvenido!</h3>
-        <p id="event-desc">Lanza el dado para avanzar. Si caes en una casilla de decisión, tendrás que elegir qué hacer.</p>
-        <div id="options-container"></div>
-      </div>
-
-      <button onclick="resetGame()" style="background-color: #e74c3c;">Reiniciar Juego</button>
-    </div>
-  </div>
-
-  <script>
-    // 🔑 LISTA DE CÓDIGOS VÁLIDOS (Solo tú los conoces y entregas)
-    const VALID_CODES = ["PROFE2026", "PARCE123", "GRUPO1", "VIPGAME"];
-
-    function checkAccess() {
-      const input = document.getElementById("access-code").value.trim();
-      if (VALID_CODES.includes(input)) {
-        document.getElementById("login-overlay").style.display = "none";
-      } else {
-        document.getElementById("login-error").style.display = "block";
-      }
-    }
-
-    const TOTAL_CELLS = 100;
-    let playerPosition = 1;
-    let isMoving = false;
-
-    // 30 PREGUNTAS INTERACTIVAS CON OPCIONES DE DECISIÓN
-    const decisions = {
-      4: { question: "Tienes un examen mañana temprano y tus amigos te invitan a una fiesta.", options: [{ text: "Ir a la fiesta y no estudiar", correct: false, move: -5, msg: "Llegaste cansado y reprobaste. Retrocedes 5 casillas." }, { text: "Quedarte a estudiar y descansar", correct: true, move: 4, msg: "Sacaste buena nota. Avanzas 4 casillas." }] },
-      8: { question: "Te sobró algo de dinero de tu presupuesto mensual.", options: [{ text: "Ahorrarlo para imprevistos", correct: true, move: 4, msg: "Construiste un fondo de ahorro. Avanzas 4 casillas." }, { text: "Gastarlo de inmediato en ropa costosa", correct: false, move: -4, msg: "Te quedaste sin liquidez. Retrocedes 4 casillas." }] },
-      12: { question: "Tienes una entrega en grupo pero un integrante no aporta nada.", options: [{ text: "Hablar asertivamente y repartir tareas claras", correct: true, move: 5, msg: "Lograron entregar a tiempo. Avanzas 5 casillas." }, { text: "Pelear y sacarlo del grupo el último día", correct: false, move: -5, msg: "Generaste conflicto y entregaron incompleto. Retrocedes 5 casillas." }] },
-      16: { question: "No entendiste el tema explicado por el profesor.", options: [{ text: "Quedarte callado por pena", correct: false, move: -4, msg: "Te acumulaste de dudas. Retrocedes 4 casillas." }, { text: "Pedir asesoría o investigar por tu cuenta", correct: true, move: 5, msg: "Dominaste el tema. Avanzas 5 casillas." }] },
-      20: { question: "Te ofrecen una forma rápida de hacer trampa en un trabajo.", options: [{ text: "Aceptar y copiar el trabajo", correct: false, move: -7, msg: "Te descubrieron y anularon el trabajo. Retrocedes 7 casillas." }, { text: "Hacer tu trabajo honestamente", correct: true, move: 4, msg: "Aprendiste y aprobaste con orgullo. Avanzas 4 casillas." }] },
-      25: { question: "Sientes mucho cansancio acumulado por el estudio.", options: [{ text: "Tomar un descanso y organizar tu horario", correct: true, move: 4, msg: "Recuperaste tu energía. Avanzas 4 casillas." }, { text: "Dormir 3 horas al día usando energizantes", correct: false, move: -5, msg: "Te enfermaste. Retrocedes 5 casillas." }] },
-      29: { question: "Te asignan exponer el tema principal del módulo.", options: [{ text: "Preparar diapositivas y ensayar", correct: true, move: 6, msg: "La exposición fue un éxito. Avanzas 6 casillas." }, { text: "Improvisar todo el día de la presentación", correct: false, move: -6, msg: "Te confundiste frente a todos. Retrocedes 6 casillas." }] },
-      33: { question: "Un amigo te pide prestado el dinero de tu arriendo/matrícula.", options: [{ text: "Prestarlo sin garantías", correct: false, move: -6, msg: "No te pagó a tiempo y tuviste deudas. Retrocedes 6 casillas." }, { text: "Explicarle tu situación y negarte amablemente", correct: true, move: 3, msg: "Mantuviste tus finanzas sanas. Avanzas 3 casillas." }] },
-      38: { question: "Encontraste una billetera en la cafetería con documentos y dinero.", options: [{ text: "Quedarte el dinero", correct: false, move: -8, msg: "Remordimiento y sanción moral. Retrocedes 8 casillas." }, { text: "Buscar al dueño o entregarla en recepción", correct: true, move: 6, msg: "Cosechas buena reputación. Avanzas 6 casillas." }] },
-      42: { question: "Ves una convocatoria para becas o pasantías.", options: [{ text: "Postularte inmediatamente", correct: true, move: 7, msg: "Fuiste seleccionado. Avanzas 7 casillas." }, { text: "Pensar que 'no tienes oportunidad' y no enviar nada", correct: false, move: -4, msg: "Perdiste una gran oportunidad. Retrocedes 4 casillas." }] },
-      47: { question: "Llegas tarde habitualmente a tus compromisos.", options: [{ text: "Poner alarmas y salir 15 minutos antes", correct: true, move: 5, msg: "Mejoraste tu puntualidad. Avanzas 5 casillas." }, { text: "Seguir dando excusas sobre el tráfico", correct: false, move: -5, msg: "Perdiste credibilidad. Retrocedes 5 casillas." }] },
-      51: { question: "Te hicieron una crítica constructiva sobre tu proyecto.", options: [{ text: "Tomarlo a mal y enojarte", correct: false, move: -5, msg: "No corregiste los errores. Retrocedes 5 casillas." }, { text: "Escuchar, corregir e integrar las mejoras", correct: true, move: 6, msg: "Tu proyecto mejoró muchísimo. Avanzas 6 casillas." }] },
-      56: { question: "Te invitan a un proyecto independiente fuera de tus clases.", options: [{ text: "Aceptar para ganar experiencia práctica", correct: true, move: 6, msg: "Ganaste experiencia valiosa. Avanzas 6 casillas." }, { text: "Rechazarlo por flojera", correct: false, move: -4, msg: "Te quedaste estancado. Retrocedes 4 casillas." }] },
-      60: { question: "Hay un conflicto de opiniones en tu equipo de trabajo.", options: [{ text: "Imponer tu idea a la fuerza", correct: false, move: -6, msg: "El equipo se dividió. Retrocedes 6 casillas." }, { text: "Proponer una votación y negociar", correct: true, move: 5, msg: "Llegaron a un acuerdo óptimo. Avanzas 5 casillas." }] },
-      65: { question: "Tienes una entrega urgente y las redes sociales te distraen.", options: [{ text: "Silenciar el teléfono hasta terminar", correct: true, move: 5, msg: "Terminaste en tiempo récord. Avanzas 5 casillas." }, { text: "Revisar notificaciones cada 5 minutos", correct: false, move: -6, msg: "Entregaste incompleto. Retrocedes 6 casillas." }] },
-      69: { question: "Tienes la oportunidad de aprender un software/herramienta nueva.", options: [{ text: "Aprender a usarlo en tu tiempo libre", correct: true, move: 6, msg: "Aumentaste tu valor profesional. Avanzas 6 casillas." }, { text: "Decir que es 'muy difícil' y evitarlo", correct: false, move: -4, msg: "Te quedaste desactualizado. Retrocedes 4 casillas." }] },
-      73: { question: "Cometiste un error grave en un informe académico o laboral.", options: [{ text: "Ocultarlo y esperar que nadie se dé cuenta", correct: false, move: -8, msg: "El error creció y causó un gran problema. Retrocedes 8 casillas." }, { text: "Asumir la responsabilidad y proponer la solución", correct: true, move: 5, msg: "Valoraron tu honestidad. Avanzas 5 casillas." }] },
-      77: { question: "Sientes envidia por los logros de un compañero.", options: [{ text: "Hablar mal de él/ella", correct: false, move: -7, msg: "Creaste un ambiente tóxico. Retrocedes 7 casillas." }, { text: "Felicitarlo y pedirle consejos de éxito", correct: true, move: 5, msg: "Creaste una alianza valiosa. Avanzas 5 casillas." }] },
-      81: { question: "Se acerca la presentación final de grado o curso.", options: [{ text: "Ensayar 10 veces frente al espejo", correct: true, move: 7, msg: "Dominio total del tema. Avanzas 7 casillas." }, { text: "Confiarte y no practicar", correct: false, move: -7, msg: "Nervios te jugaron una mala pasada. Retrocedes 7 casillas." }] },
-      86: { question: "Te ofrecen un trabajo a tiempo parcial mientras estudias.", options: [{ text: "Organizar tu agenda de manera rigurosa", correct: true, move: 6, msg: "Lograste equilibrio y ganancias. Avanzas 6 casillas." }, { text: "Aceptar pero descuidar las clases", correct: false, move: -8, msg: "Reprobaste asignaturas. Retrocedes 8 casillas." }] },
-      90: { question: "Te quedan pocos días para finalizar el objetivo y estás fatigado.", options: [{ text: "Rendirte y abandonar en la recta final", correct: false, move: -10, msg: "Perdiste todo el avance acumulado. Retrocedes 10 casillas." }, { text: "Dar el último esfuerzo con disciplina", correct: true, move: 6, msg: "Quedaste a un paso de la meta. Avanzas 6 casillas." }] },
-      95: { question: "Último obstáculo: Revisión final de requisitos.", options: [{ text: "Verificar punto por punto que todo esté en regla", correct: true, move: 4, msg: "Todo impecable. Avanzas 4 casillas." }, { text: "Enviar sin revisar", correct: false, move: -6, msg: "Faltó un documento clave. Retrocedes 6 casillas." }] }
+    // Configuración extraída de tu Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAlavxNK9zUVKgsurezPuQb6kGqkiMoOV8",
+      authDomain: "juego-de-decisiones-952a3.firebaseapp.com",
+      databaseURL: "https://juego-de-decisiones-952a3-default-rtdb.firebaseio.com",
+      projectId: "juego-de-decisiones-952a3",
+      storageBucket: "juego-de-decisiones-952a3.firebasestorage.app",
+      messagingSenderId: "421666470468",
+      appId: "1:421666470468:web:c6367107efd62cbe265a11"
     };
 
-    function createBoard() {
-      const boardElement = document.getElementById("board");
-      boardElement.innerHTML = "";
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-      for (let row = 9; row >= 0; row--) {
-        const isEvenRow = row % 2 === 0;
-        for (let col = 0; col < 10; col++) {
-          let cellNumber = isEvenRow ? (row * 10 + col + 1) : (row * 10 + (9 - col) + 1);
+    let roomCode = null;
+    let playerId = null;
+    let playerName = "";
 
-          const cell = document.createElement("div");
-          cell.className = "cell";
-          cell.id = `cell-${cellNumber}`;
-          
-          const numberSpan = document.createElement("span");
-          numberSpan.innerText = cellNumber;
-          cell.appendChild(numberSpan);
+    // Elementos DOM
+    const screenLogin = document.getElementById('screen-login');
+    const screenLobby = document.getElementById('screen-lobby');
+    const screenGame = document.getElementById('screen-game');
+    const inputName = document.getElementById('input-name');
+    const inputRoom = document.getElementById('input-room');
+    const displayRoomCode = document.getElementById('display-room-code');
+    const playerListLobby = document.getElementById('player-list-lobby');
+    const turnDisplay = document.getElementById('turn-display');
+    const diceResult = document.getElementById('dice-result');
+    const btnRoll = document.getElementById('btn-roll');
 
-          if (decisions[cellNumber]) {
-            cell.classList.add("decision");
-            cell.innerHTML += "<span>❓</span>";
-          }
+    // Función auxiliar para generar códigos de sala
+    function generateCode() {
+      return Math.random().toString(36).substring(2, 7).toUpperCase();
+    }
 
-          boardElement.appendChild(cell);
+    // Validar Nombre
+    function getValidName() {
+      const name = inputName.value.trim();
+      if (!name) {
+        alert("Por favor escribe un nombre.");
+        return null;
+      }
+      return name.substring(0, 20); // Límite máximo de 20 caracteres
+    }
+
+    // Crear Sala
+    window.createRoom = async function() {
+      playerName = getValidName();
+      if (!playerName) return;
+
+      roomCode = generateCode();
+      playerId = "p_1";
+
+      const roomRef = ref(db, 'rooms/' + roomCode);
+      await set(roomRef, {
+        state: 'waiting',
+        currentTurn: 1,
+        players: {
+          p_1: { id: "p_1", name: playerName, position: 0, order: 1 }
         }
+      });
+
+      listenToRoom();
+      showScreen(screenLobby);
+      displayRoomCode.innerText = roomCode;
+    };
+
+    // Unirse a Sala
+    window.joinRoom = async function() {
+      playerName = getValidName();
+      if (!playerName) return;
+
+      const code = inputRoom.value.trim().toUpperCase();
+      if (!code) {
+        alert("Ingresa un código de sala.");
+        return;
       }
 
-      const playerToken = document.createElement("div");
-      playerToken.id = "player-token";
-      playerToken.className = "player-token";
-      document.getElementById("board").appendChild(playerToken);
+      const roomRef = ref(db, 'rooms/' + code);
+      const snapshot = await get(roomRef);
 
-      updateTokenPosition();
-    }
-
-    function updateTokenPosition() {
-      const cell = document.getElementById(`cell-${playerPosition}`);
-      const token = document.getElementById("player-token");
-      
-      const cellRect = cell.getBoundingClientRect();
-      const boardRect = document.getElementById("board").getBoundingClientRect();
-
-      const top = cellRect.top - boardRect.top + (cellRect.height / 2);
-      const left = cellRect.left - boardRect.left + (cellRect.width / 2);
-
-      token.style.top = `${top}px`;
-      token.style.left = `${left}px`;
-
-      document.getElementById("status").innerText = `Posición actual: Casilla ${playerPosition}`;
-    }
-
-    const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
-
-    async function playTurn() {
-      if (isMoving) return;
-      isMoving = true;
-
-      document.getElementById("roll-btn").disabled = true;
-      document.getElementById("options-container").innerHTML = "";
-
-      const diceElement = document.getElementById("dice");
-      let diceValue = 1;
-      for (let i = 0; i < 8; i++) {
-        diceValue = Math.floor(Math.random() * 6) + 1;
-        diceElement.innerText = diceFaces[diceValue - 1];
-        await new Promise(r => setTimeout(r, 40));
+      if (!snapshot.exists()) {
+        alert("La sala no existe.");
+        return;
       }
 
-      let targetPosition = playerPosition + diceValue;
-      if (targetPosition > TOTAL_CELLS) targetPosition = TOTAL_CELLS;
+      const data = snapshot.val();
+      const players = data.players || {};
+      const count = Object.keys(players).length;
 
-      document.getElementById("event-title").innerText = `🎲 Sacaste un ${diceValue}`;
-      document.getElementById("event-desc").innerText = `Avanzando ${diceValue} casilla(s)...`;
-
-      while (playerPosition < targetPosition) {
-        playerPosition++;
-        updateTokenPosition();
-        await new Promise(r => setTimeout(r, 180));
+      if (count >= 15) {
+        alert("La sala ya está llena (máximo 15 jugadores).");
+        return;
       }
 
-      if (decisions[playerPosition]) {
-        presentDecision(decisions[playerPosition]);
-      } else if (playerPosition === TOTAL_CELLS) {
-        document.getElementById("event-title").innerText = "🏆 ¡VICTORIA!";
-        document.getElementById("event-desc").innerText = "¡Llegaste a la casilla 100 con éxito!";
-      } else {
-        document.getElementById("roll-btn").disabled = false;
-        isMoving = false;
-      }
-    }
+      roomCode = code;
+      const nextOrder = count + 1;
+      playerId = `p_${nextOrder}`;
 
-    function presentDecision(decData) {
-      document.getElementById("event-title").innerText = "❓ Toma una Decisión";
-      document.getElementById("event-desc").innerText = decData.question;
+      await update(ref(db, `rooms/${roomCode}/players/${playerId}`), {
+        id: playerId,
+        name: playerName,
+        position: 0,
+        order: nextOrder
+      });
 
-      const optsContainer = document.getElementById("options-container");
-      optsContainer.innerHTML = "";
+      listenToRoom();
+      showScreen(screenLobby);
+      displayRoomCode.innerText = roomCode;
+    };
 
-      decData.options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "option-btn";
-        btn.innerText = opt.text;
-        btn.onclick = () => handleChoice(opt);
-        optsContainer.appendChild(btn);
+    // Iniciar Juego (Solo Host)
+    window.startGame = async function() {
+      await update(ref(db, `rooms/${roomCode}`), { state: 'playing' });
+    };
+
+    // Escuchar cambios de la sala en tiempo real
+    function listenToRoom() {
+      const roomRef = ref(db, 'rooms/' + roomCode);
+      onValue(roomRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const players = Object.values(data.players || {});
+        
+        // Renderizar lista de jugadores en Lobby
+        playerListLobby.innerHTML = players.map(p => 
+          `<div class="player-item"><span>${p.name}</span> <b>#${p.order}</b></div>`
+        ).join('');
+
+        // Transición al juego
+        if (data.state === 'playing') {
+          showScreen(screenGame);
+          renderGameScreen(data, players);
+        }
       });
     }
 
-    async function handleChoice(selectedOption) {
-      document.getElementById("options-container").innerHTML = "";
-      document.getElementById("event-title").innerText = selectedOption.correct ? " Decision Correcta" : " Decision Incorrecta";
-      document.getElementById("event-desc").innerText = selectedOption.msg;
+    // Actualizar pantalla del juego
+    function renderGameScreen(roomData, players) {
+      const currentTurnOrder = roomData.currentTurn;
+      const currentPlayer = players.find(p => p.order === currentTurnOrder);
 
-      let targetPosition = playerPosition + selectedOption.move;
-      if (targetPosition < 1) targetPosition = 1;
-      if (targetPosition > TOTAL_CELLS) targetPosition = TOTAL_CELLS;
-
-      const step = selectedOption.move > 0 ? 1 : -1;
-      while (playerPosition !== targetPosition) {
-        playerPosition += step;
-        updateTokenPosition();
-        await new Promise(r => setTimeout(r, 200));
+      if (currentPlayer) {
+        turnDisplay.innerText = `Turno de: ${currentPlayer.name}`;
+        btnRoll.disabled = (currentPlayer.id !== playerId);
       }
 
-      if (playerPosition === TOTAL_CELLS) {
-        document.getElementById("event-title").innerText = "🏆 ¡VICTORIA!";
-        document.getElementById("event-desc").innerText = "¡Has ganado el juego!";
-      } else {
-        document.getElementById("roll-btn").disabled = false;
-        isMoving = false;
-      }
+      const playerBoard = document.getElementById('player-board');
+      playerBoard.innerHTML = players.map(p => 
+        `<div class="player-item"><span>${p.name}</span> <span>Casilla: ${p.position}</span></div>`
+      ).join('');
     }
 
-    function resetGame() {
-      playerPosition = 1;
-      updateTokenPosition();
-      document.getElementById("event-title").innerText = "¡Juego Reiniciado!";
-      document.getElementById("event-desc").innerText = "Lanza el dado para comenzar.";
-      document.getElementById("options-container").innerHTML = "";
-      document.getElementById("roll-btn").disabled = false;
-      isMoving = false;
-    }
+    // Lanzar Dado
+    window.rollDice = async function() {
+      btnRoll.disabled = true;
+      const roll = Math.floor(Math.random() * 6) + 1;
+      diceResult.innerText = `🎲 Sacaste un ${roll}`;
 
-    window.onload = createBoard;
-    window.onresize = updateTokenPosition;
+      const roomRef = ref(db, 'rooms/' + roomCode);
+      const snapshot = await get(roomRef);
+      const data = snapshot.val();
+      const players = Object.values(data.players || {});
+      
+      const me = players.find(p => p.id === playerId);
+      const newPosition = (me.position || 0) + roll;
+      const totalPlayers = players.length;
+      let nextTurn = data.currentTurn + 1;
+      if (nextTurn > totalPlayers) nextTurn = 1;
+
+      const updates = {};
+      updates[`rooms/${roomCode}/players/${playerId}/position`] = newPosition;
+      updates[`rooms/${roomCode}/currentTurn`] = nextTurn;
+
+      await update(ref(db), updates);
+    };
+
+    function showScreen(screen) {
+      screenLogin.classList.add('hidden');
+      screenLobby.classList.add('hidden');
+      screenGame.classList.add('hidden');
+      screen.classList.remove('hidden');
+    }
   </script>
+</head>
+<body>
+
+  <!-- Pantalla 1: Registro e Ingreso -->
+  <div id="screen-login" class="card">
+    <h1>Juego de Decisiones</h1>
+    <p>Ingresa tu nombre para jugar</p>
+    <input type="text" id="input-name" placeholder="Tu nombre (máx 20 caracteres)" maxlength="20">
+    <hr style="border-color: #333; margin: 15px 0;">
+    <button onclick="createRoom()">Crear nueva sala (Host)</button>
+    <p>O únete a una existente:</p>
+    <input type="text" id="input-room" placeholder="Código de la sala (ej: A1B2C)">
+    <button onclick="joinRoom()">Unirme a la sala</button>
+  </div>
+
+  <!-- Pantalla 2: Sala de Espera (Lobby) -->
+  <div id="screen-lobby" class="card hidden">
+    <h2>Sala de Espera</h2>
+    <p>Comparte este código con tus amigos (hasta 15 personas):</p>
+    <div id="display-room-code" class="room-code">-----</div>
+    <h3>Jugadores conectados:</h3>
+    <div id="player-list-lobby" class="player-list"></div>
+    <button onclick="startGame()" style="margin-top: 20px;">¡Empezar Juego!</button>
+  </div>
+
+  <!-- Pantalla 3: Juego Principal -->
+  <div id="screen-game" class="card hidden">
+    <h2>Partida en curso</h2>
+    <div id="turn-display" class="current-turn">Cargando turno...</div>
+    <div id="dice-result" style="font-size: 20px; margin-bottom: 10px;"></div>
+    <button id="btn-roll" onclick="rollDice()">🎲 Lanzar Dado</button>
+
+    <h3>Posiciones:</h3>
+    <div id="player-board" class="player-list"></div>
+  </div>
+
 </body>
 </html>
