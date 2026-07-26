@@ -3,86 +3,268 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego de Decisiones de la Vida</title>
+  <title>Juego de Decisiones Escolar</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #121212; color: #ffffff; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    .card { background: #1e1e1e; padding: 20px; border-radius: 12px; max-width: 600px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; margin-bottom: 20px; }
-    h1, h2, h3 { color: #00e676; margin-top: 0; }
-    input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: white; font-size: 16px; }
-    button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: none; background: #00e676; color: #000; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #00b359; }
-    button:disabled { background: #555; color: #888; cursor: not-allowed; }
-    .room-code { font-size: 24px; font-weight: bold; color: #00e676; letter-spacing: 2px; }
-    .player-list { text-align: left; background: #2a2a2a; padding: 10px; border-radius: 6px; max-height: 150px; overflow-y: auto; margin-bottom: 10px; }
-    .player-item { padding: 6px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
-    .current-turn { color: #ffeb3b; font-weight: bold; font-size: 18px; margin: 10px 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Kalam', cursive; }
+
+    /* FONDO ESTILO CUADERNO ESCOLAR DE HOJAS CUADRICULADAS */
+    body { 
+      background-color: #fdfaf3;
+      background-image: 
+        linear-gradient(90deg, rgba(255, 0, 0, 0.2) 1px, transparent 0),
+        linear-gradient(#e1e8ed 1px, transparent 0);
+      background-size: 100% 100%, 25px 25px;
+      background-position: 50px 0, 0 0;
+      color: #2c3e50; 
+      margin: 0; 
+      padding: 15px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      min-height: 100vh; 
+    }
+
+    /* CONTENEDOR TIPO HOJA DE LIBRETA */
+    .card { 
+      background: #ffffff; 
+      border: 2px solid #34495e;
+      border-radius: 8px; 
+      max-width: 650px; 
+      width: 100%; 
+      padding: 24px; 
+      box-shadow: 6px 6px 0px #34495e; 
+      text-align: center; 
+      margin-bottom: 20px; 
+      position: relative;
+    }
+
+    .card::before {
+      content: "✏️ 📐 📚 🎒";
+      position: absolute;
+      top: -15px;
+      left: 20px;
+      font-size: 18px;
+      background: #fdfaf3;
+      padding: 0 10px;
+    }
+
+    h1, h2, h3 { 
+      color: #2c3e50; 
+      font-family: 'Caveat', cursive;
+      font-size: 32px;
+      margin-top: 5px; 
+      margin-bottom: 10px;
+    }
+
+    input { 
+      width: 100%; 
+      padding: 12px; 
+      margin: 10px 0; 
+      border-radius: 6px; 
+      border: 2px dashed #2c3e50; 
+      background: #fcfbf7; 
+      color: #2c3e50; 
+      font-size: 18px; 
+      outline: none;
+    }
+
+    button { 
+      width: 100%; 
+      padding: 12px; 
+      margin: 8px 0; 
+      border-radius: 8px; 
+      border: 2px solid #2c3e50; 
+      background: #f1c40f; 
+      color: #2c3e50; 
+      font-weight: bold; 
+      font-size: 20px; 
+      cursor: pointer; 
+      box-shadow: 3px 3px 0px #2c3e50;
+      transition: all 0.1s;
+    }
+    button:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px #2c3e50; background: #f39c12; }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #2c3e50; }
+    button:disabled { background: #bdc3c7; color: #7f8c8d; cursor: not-allowed; box-shadow: none; transform: none; border-color: #7f8c8d; }
+
+    .room-code { 
+      font-size: 32px; 
+      font-weight: bold; 
+      color: #e74c3c; 
+      letter-spacing: 4px; 
+      background: #fff3cd; 
+      padding: 8px; 
+      border-radius: 6px; 
+      border: 2px dashed #e67e22; 
+      display: inline-block;
+      margin: 10px 0;
+    }
+
+    .player-list { 
+      text-align: left; 
+      background: #fcfbf7; 
+      padding: 12px; 
+      border-radius: 6px; 
+      max-height: 150px; 
+      overflow-y: auto; 
+      margin-bottom: 10px; 
+      border: 2px solid #bdc3c7; 
+    }
+
+    .player-item { padding: 6px; border-bottom: 1px dashed #bdc3c7; display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+    .current-turn { color: #2980b9; font-weight: bold; font-size: 22px; margin: 10px 0; }
     .hidden { display: none !important; }
 
-    /* TABLERO 1 A 100 */
-    #board-container { width: 100%; max-width: 500px; margin: 15px auto; }
-    .board { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; background: #333; border: 2px solid #00e676; border-radius: 8px; padding: 2px; }
-    .cell { background: #242424; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #888; position: relative; border-radius: 2px; }
-    .cell-number { font-size: 8px; position: absolute; top: 1px; left: 2px; }
-    .cell-icon { font-size: 10px; margin-top: 2px; }
-    .tokens-container { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; margin-top: 2px; }
-    .token { width: 10px; height: 10px; border-radius: 50%; border: 1px solid white; font-size: 7px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: black; }
+    /* TABLERO ESTILO PIZARRÓN ESCOLAR */
+    #board-container { 
+      width: 100%; 
+      max-width: 580px; 
+      margin: 15px auto; 
+      padding: 10px;
+      background: #273c75;
+      border-radius: 10px;
+      border: 6px solid #8c7ae6;
+      box-shadow: 4px 4px 0px #1e272e;
+    }
 
-    /* Estilos especiales por casilla */
-    .cell-q { background: #2b2810; border: 1px solid #ffd600; }
-    .cell-boost { background: #102b17; border: 1px solid #00e676; }
-    .cell-trap { background: #2b1010; border: 1px solid #ff5252; }
+    .board { 
+      display: grid; 
+      grid-template-columns: repeat(10, 1fr); 
+      gap: 3px; 
+    }
 
-    /* MODAL PREGUNTAS */
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 100; }
-    .modal-content { background: #222; padding: 20px; border-radius: 12px; max-width: 500px; width: 100%; text-align: left; border: 1px solid #00e676; }
-    .option-btn { background: #333; color: white; text-align: left; margin: 6px 0; font-size: 14px; font-weight: normal; }
-    .option-btn:hover { background: #00e676; color: black; }
+    .cell { 
+      background: #f5f6fa; 
+      aspect-ratio: 1; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: space-between; 
+      font-size: 10px; 
+      color: #2f3640; 
+      position: relative; 
+      border-radius: 4px; 
+      border: 1px solid #dcdde1;
+      padding: 2px;
+    }
+
+    .cell-number { 
+      font-size: 10px; 
+      font-weight: bold;
+      position: absolute; 
+      top: 1px; 
+      left: 3px; 
+      color: #718093;
+    }
+
+    .cell-icon { 
+      font-size: 12px; 
+      margin-top: 10px; 
+    }
+
+    /* Estilos de casillas especiales */
+    .cell-q { background: #fff200; border: 1.5px solid #fbc531; } /* Examen Sorpresa */
+    .cell-boost { background: #4cd137; border: 1.5px solid #44bd32; color: white; } /* Recreo/Avance */
+    .cell-trap { background: #e84118; border: 1.5px solid #c23616; color: white; } /* Coordinación/Retroceso */
+
+    /* FICHAS DE ESTUDIANTES */
+    .tokens-container { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 2px; 
+      justify-content: center; 
+      align-items: center; 
+      width: 100%;
+      min-height: 12px;
+      margin-bottom: 2px;
+    }
+
+    .token { 
+      width: 14px; 
+      height: 14px; 
+      border-radius: 50%; 
+      border: 1.5px solid #000; 
+      font-size: 9px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+      color: #fff; 
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* MODAL ESTILO NOTA ADHESIVA (POST-IT) */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 100; }
+    .modal-content { 
+      background: #fffa65; 
+      padding: 25px; 
+      border-radius: 4px; 
+      max-width: 500px; 
+      width: 100%; 
+      text-align: left; 
+      border: 2px solid #e1b12c; 
+      box-shadow: 8px 8px 0px #2c3e50;
+      color: #2c3e50;
+    }
+    .option-btn { 
+      background: #ffffff; 
+      color: #2c3e50; 
+      text-align: left; 
+      margin: 8px 0; 
+      font-size: 16px; 
+      border: 2px solid #2c3e50; 
+      box-shadow: 2px 2px 0px #2c3e50;
+    }
+    .option-btn:hover { background: #00a8ff; color: white; }
   </style>
 </head>
 <body>
 
   <!-- PANTALLA 1: INGRESO -->
   <div id="screen-login" class="card">
-    <h1>Juego de Decisiones</h1>
-    <p>Ingresa tu nombre para comenzar</p>
-    <input type="text" id="input-name" placeholder="Tu nombre (máx 20 caracteres)" maxlength="20">
-    <hr style="border-color: #333; margin: 15px 0;">
-    <button id="btn-create">Crear nueva sala (Host)</button>
-    <p>O únete a una existente:</p>
+    <h1>🎒 Juego de Decisiones Escolares 🏫</h1>
+    <p>¡Demuestra tus valores éticos y llega primero a la meta!</p>
+    <input type="text" id="input-name" placeholder="Escribe tu nombre de estudiante" maxlength="20">
+    <hr style="border-color: #bdc3c7; margin: 15px 0;">
+    <button id="btn-create">Crear una nueva sala (Profesor/Host)</button>
+    <p style="margin-top: 15px;">¿Tienes un código de clase? Ingrésalo aquí:</p>
     <input type="text" id="input-room" placeholder="Código de la sala (ej: A1B2C)">
-    <button id="btn-join">Unirme a la sala</button>
+    <button id="btn-join">Unirme a la clase</button>
   </div>
 
   <!-- PANTALLA 2: LOBBY -->
   <div id="screen-lobby" class="card hidden">
-    <h2>Sala de Espera</h2>
-    <p>Comparte este código con los demás jugadores:</p>
+    <h2>Sala de Espera del Colegio</h2>
+    <p>Comparte este código con tus compañeros:</p>
     <div id="display-room-code" class="room-code">-----</div>
-    <h3>Jugadores conectados:</h3>
+    <h3 style="margin-top:15px;">Estudiantes conectados:</h3>
     <div id="player-list-lobby" class="player-list"></div>
-    <button id="btn-start">¡Empezar Juego!</button>
+    <button id="btn-start">🚀 ¡Iniciar el juego!</button>
   </div>
 
   <!-- PANTALLA 3: JUEGO CON TABLERO -->
   <div id="screen-game" class="card hidden">
-    <h2>Tablero de Decisiones (1 - 100)</h2>
-    <p style="font-size:12px; color:#aaa; margin-top:-10px;">❓ Pregunta | 🚀 Avanzas 3 | 🛑 Retrocedes 3</p>
+    <h2>Tablero del Colegio (Casillas 1 - 100)</h2>
+    <p style="font-size:14px; color:#57606f; margin-top:-8px;">❓ Examen Sorpresa | 🚀 Recreo (+3) | 🛑 Coordinación (-3)</p>
+    
     <div id="board-container">
       <div id="board" class="board"></div>
     </div>
+
     <div id="turn-display" class="current-turn">Cargando turno...</div>
-    <div id="dice-result" style="font-size: 18px; margin-bottom: 8px;"></div>
+    <div id="dice-result" style="font-size: 22px; font-weight:bold; margin-bottom: 8px; color:#e67e22;"></div>
     <button id="btn-roll">🎲 Lanzar Dado</button>
-    <h3>Posiciones de Jugadores:</h3>
+
+    <h3 style="margin-top:15px;">Posiciones de los Estudiantes:</h3>
     <div id="player-board-list" class="player-list"></div>
   </div>
 
   <!-- MODAL DE PREGUNTAS -->
   <div id="question-modal" class="modal hidden">
     <div class="modal-content">
-      <h3 style="color:#00e676;">❓ ¡Casilla de Pregunta! Toma tu decisión:</h3>
-      <p id="modal-q-text" style="font-size:15px; line-height:1.4;"></p>
+      <h3>📝 ¡EXAMEN SORPRESA! Toma tu decisión:</h3>
+      <p id="modal-q-text" style="font-size:18px; line-height:1.4; font-weight:bold;"></p>
       <div id="modal-options"></div>
     </div>
   </div>
@@ -110,12 +292,11 @@
     let currentQuestion = null;
     let pendingPosition = 1;
 
-    const colors = ["#ff5252", "#ff4081", "#e040fb", "#7c4dff", "#536def", "#448aff", "#40c4ff", "#1de9b6", "#64dd17", "#aeea00", "#ffd600", "#ffab00", "#ff6d00", "#8d6e63", "#00e676"];
+    const colors = ["#e74c3c", "#e84393", "#9b59b6", "#3498db", "#1abc9c", "#2ecc71", "#f1c40f", "#e67e22", "#d35400", "#34495e"];
 
-    // Definición de casillas especiales en el tablero
     const questionCells = [4, 8, 12, 16, 21, 26, 31, 37, 42, 48, 53, 58, 64, 70, 75, 81, 87, 93, 97];
-    const boostCells = [9, 25, 45, 62, 83]; // 🚀 +3 casillas
-    const trapCells = [15, 34, 55, 73, 91]; // 🛑 -3 casillas
+    const boostCells = [9, 25, 45, 62, 83];
+    const trapCells = [15, 34, 55, 73, 91];
 
     const questions = [
       { q: "El profesor dejó la respuesta del examen en el tablero por error. ¿Qué haces?", options: ["Copiarla rápido y pasarla.", "Avisarle amablemente para que la borre.", "Vender la respuesta.", "Ignorarlo y resolver solo."], correct: 1 },
@@ -163,7 +344,7 @@
       if (!snapshot.exists()) return alert("La sala no existe.");
       const data = snapshot.val();
       const count = Object.keys(data.players || {}).length;
-      if (count >= 15) return alert("Sala llena.");
+      if (count >= 10) return alert("Sala llena.");
 
       roomCode = code;
       const nextOrder = count + 1;
@@ -192,24 +373,19 @@
       if (newPos > 100) newPos = 100;
       pendingPosition = newPos;
 
-      // Evaluar en qué casilla cayó
       if (questionCells.includes(newPos)) {
-        // Cayó en PREGUNTA ❓
         const qIndex = Math.floor(Math.random() * questions.length);
         currentQuestion = questions[qIndex];
         showQuestionModal(currentQuestion);
       } else if (boostCells.includes(newPos)) {
-        // Cayó en TRAMPOLÍN 🚀 (+3)
-        alert("🚀 ¡Casilla de Impulso! Avanzas 3 casillas adicionales.");
+        alert("🚀 ¡Llegó el Recreo! Avanzas 3 casillas adicionales.");
         newPos = Math.min(100, newPos + 3);
         await finishTurn(newPos, data);
       } else if (trapCells.includes(newPos)) {
-        // Cayó en TRAMPA 🛑 (-3)
-        alert("🛑 ¡Caíste en una trampa! Retrocedes 3 casillas.");
+        alert("🛑 ¡Te enviaron a Coordinación! Retrocedes 3 casillas.");
         newPos = Math.max(1, newPos - 3);
         await finishTurn(newPos, data);
       } else {
-        // Casilla NORMAL
         await finishTurn(newPos, data);
       }
     });
@@ -227,7 +403,7 @@
 
         const players = Object.values(data.players || {});
         document.getElementById('player-list-lobby').innerHTML = players.map(p => 
-          `<div class="player-item"><span>${p.name}</span> <span style="color:${p.color}">● #${p.order}</span></div>`
+          `<div class="player-item"><span>${p.name}</span> <span style="color:${p.color}">● Estudiante #${p.order}</span></div>`
         ).join('');
 
         if (data.state === 'playing') {
@@ -242,33 +418,40 @@
       const boardEl = document.getElementById('board');
       boardEl.innerHTML = '';
       
-      for (let i = 100; i >= 1; i--) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.id = `cell-${i}`;
-        
-        if (questionCells.includes(i)) cell.classList.add('cell-q');
-        if (boostCells.includes(i)) cell.classList.add('cell-boost');
-        if (trapCells.includes(i)) cell.classList.add('cell-trap');
+      for (let row = 0; row < 10; row++) {
+        const startNum = 100 - (row * 10);
+        const isReverse = row % 2 !== 0;
 
-        const num = document.createElement('span');
-        num.className = 'cell-number';
-        num.innerText = i;
-        cell.appendChild(num);
+        for (let col = 0; col < 10; col++) {
+          const i = isReverse ? (startNum - 9 + col) : (startNum - col);
 
-        const icon = document.createElement('span');
-        icon.className = 'cell-icon';
-        if (questionCells.includes(i)) icon.innerText = '❓';
-        else if (boostCells.includes(i)) icon.innerText = '🚀';
-        else if (trapCells.includes(i)) icon.innerText = '🛑';
-        cell.appendChild(icon);
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.id = `cell-${i}`;
+          
+          if (questionCells.includes(i)) cell.classList.add('cell-q');
+          if (boostCells.includes(i)) cell.classList.add('cell-boost');
+          if (trapCells.includes(i)) cell.classList.add('cell-trap');
 
-        const tokensDiv = document.createElement('div');
-        tokensDiv.className = 'tokens-container';
-        tokensDiv.id = `tokens-${i}`;
-        cell.appendChild(tokensDiv);
+          const num = document.createElement('span');
+          num.className = 'cell-number';
+          num.innerText = i;
+          cell.appendChild(num);
 
-        boardEl.appendChild(cell);
+          const icon = document.createElement('span');
+          icon.className = 'cell-icon';
+          if (questionCells.includes(i)) icon.innerText = '❓';
+          else if (boostCells.includes(i)) icon.innerText = '🚀';
+          else if (trapCells.includes(i)) icon.innerText = '🛑';
+          cell.appendChild(icon);
+
+          const tokensDiv = document.createElement('div');
+          tokensDiv.className = 'tokens-container';
+          tokensDiv.id = `tokens-${i}`;
+          cell.appendChild(tokensDiv);
+
+          boardEl.appendChild(cell);
+        }
       }
 
       players.forEach(p => {
@@ -295,7 +478,7 @@
       }
 
       document.getElementById('player-board-list').innerHTML = players.map(p => 
-        `<div class="player-item"><span style="color:${p.color}">● ${p.name}</span> <b>Casilla: ${p.position}</b></div>`
+        `<div class="player-item"><span style="color:${p.color}">● ${p.name}</span> <b>Casilla ${p.position}</b></div>`
       ).join('');
     }
 
@@ -320,14 +503,13 @@
       
       const snapshot = await get(ref(db, 'rooms/' + roomCode));
       const data = snapshot.val();
-      
       let finalPos = pendingPosition;
 
       if (selectedIdx === currentQuestion.correct) {
-        alert("¡Decisión Correcta! Ganaste +2 casillas de bono.");
+        alert("¡Decisión Correcta! Demostraste buenos valores (+2 casillas).");
         finalPos = Math.min(100, finalPos + 2);
       } else {
-        alert("Decisión Incorrecta. Retrocedes 2 casillas por mala decisión.");
+        alert("Decisión Incorrecta. Ojo con la ética (-2 casillas).");
         finalPos = Math.max(1, finalPos - 2);
       }
 
@@ -344,7 +526,7 @@
       updates[`rooms/${roomCode}/currentTurn`] = nextTurn;
 
       if (pos === 100) {
-        alert(`¡FELICIDADES! ${playerName} ha llegado a la casilla 100 y ha ganado la partida.`);
+        alert(`🎓 ¡FELICIDADES! ${playerName} se ha graduado como el mejor estudiante de la clase.`);
         updates[`rooms/${roomCode}/state`] = 'finished';
       }
 
