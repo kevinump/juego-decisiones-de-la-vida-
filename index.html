@@ -194,6 +194,46 @@
       box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
+    /* ANIMACIÓN Y CONTENEDOR DEL DADO */
+    .dice-area {
+      margin: 15px 0;
+      padding: 15px;
+      background: #fcfbf7;
+      border: 2px dashed #2c3e50;
+      border-radius: 8px;
+    }
+
+    .dice-display {
+      font-size: 65px;
+      user-select: none;
+      display: inline-block;
+      transition: transform 0.1s;
+    }
+
+    .dice-spinning {
+      animation: spinDice 0.15s infinite linear;
+      cursor: pointer;
+    }
+
+    @keyframes spinDice {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.15) rotate(10deg); }
+      100% { transform: scale(1) rotate(-10deg); }
+    }
+
+    .tap-prompt {
+      font-size: 18px;
+      font-weight: bold;
+      color: #e74c3c;
+      animation: pulseText 0.8s infinite alternate;
+      margin-top: 5px;
+    }
+
+    @keyframes pulseText {
+      from { opacity: 0.4; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1.02); }
+    }
+
     /* MODALES ESTILO NOTA ADHESIVA (POST-IT) */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 100; }
     .modal-content { 
@@ -220,7 +260,6 @@
       margin-bottom: 8px;
     }
 
-    /* Guía visual de colores en las reglas */
     .color-legend {
       background: #ffffff;
       border: 2px dashed #2c3e50;
@@ -294,8 +333,13 @@
     </div>
 
     <div id="turn-display" class="current-turn">Cargando turno...</div>
-    <div id="dice-result" style="font-size: 22px; font-weight:bold; margin-bottom: 8px; color:#e67e22;"></div>
-    <button id="btn-roll">🎲 Lanzar Dado</button>
+
+    <!-- ZONA DEL DADO INTERACTIVO -->
+    <div class="dice-area" id="dice-area">
+      <div id="dice-display" class="dice-display">🎲</div>
+      <div id="tap-prompt" class="tap-prompt hidden">👇 ¡TOCA AQUÍ PARA DETENER EL DADO! 👇</div>
+      <div id="dice-result" style="font-size: 20px; font-weight:bold; margin-top: 5px; color:#e67e22;"></div>
+    </div>
 
     <h3 style="margin-top:15px;">Posiciones de los Estudiantes:</h3>
     <div id="player-board-list" class="player-list"></div>
@@ -308,7 +352,7 @@
       
       <ul class="rules-list">
         <li>🎯 <b>Objetivo:</b> Avanzar por el colegio y ser el primero en alcanzar la <b>casilla 100</b> para graduarte.</li>
-        <li>🎲 <b>Mecánica:</b> En tu turno, lanza el dado para avanzar.</li>
+        <li>🎲 <b>Mecánica:</b> En tu turno, **toca el dado en movimiento** para detenerlo y descubrir cuántas casillas avanzas.</li>
       </ul>
 
       <h3 style="margin-bottom: 5px; font-size: 22px;">🎨 Significados de los Colores:</h3>
@@ -322,7 +366,7 @@
         </div>
         <div class="legend-item" style="margin-top: 8px;">
           <div class="color-box" style="background:#4cd137; color:white;">🚀</div>
-          <div><b>Verde (Recreo / Impulso):</b> ¡Pansas directo! Te impulsa <b>+3 casillas</b> hacia adelante.</div>
+          <div><b>Verde (Recreo / Impulso):</b> ¡Pasas directo! Te impulsa <b>+3 casillas</b> hacia adelante.</div>
         </div>
         <div class="legend-item" style="margin-top: 8px;">
           <div class="color-box" style="background:#e84118; color:white;">🛑</div>
@@ -394,6 +438,13 @@
         gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
         osc.start(now);
         osc.stop(now + 0.1);
+      } else if (type === 'tick') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, now);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.03);
+        osc.start(now);
+        osc.stop(now + 0.03);
       } else if (type === 'question') {
         osc.type = 'sine';
         osc.frequency.setValueAtTime(587.33, now); // D5
@@ -448,7 +499,6 @@
       }
     }
 
-    // Activar audio al primer clic en la pantalla
     document.body.addEventListener('click', () => initAudio(), { once: true });
 
     let roomCode = null;
@@ -456,6 +506,12 @@
     let playerName = "";
     let currentQuestion = null;
     let pendingPosition = 1;
+    
+    // Variables para la animación del dado
+    let diceInterval = null;
+    let isSpinning = false;
+    let currentTurnOrder = null;
+    const diceIcons = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 
     const colors = ["#e74c3c", "#e84393", "#9b59b6", "#3498db", "#1abc9c", "#2ecc71", "#f1c40f", "#e67e22", "#d35400", "#34495e"];
 
@@ -485,6 +541,9 @@
     const screenLobby = document.getElementById('screen-lobby');
     const screenGame = document.getElementById('screen-game');
     const rulesModal = document.getElementById('rules-modal');
+    const diceArea = document.getElementById('dice-area');
+    const diceDisplay = document.getElementById('dice-display');
+    const tapPrompt = document.getElementById('tap-prompt');
 
     document.getElementById('btn-close-rules').addEventListener('click', () => {
       initAudio();
@@ -534,42 +593,76 @@
       await update(ref(db, `rooms/${roomCode}`), { state: 'playing' });
     });
 
-    document.getElementById('btn-roll').addEventListener('click', async () => {
-      playSound('dice');
-      document.getElementById('btn-roll').disabled = true;
-      const roll = Math.floor(Math.random() * 6) + 1;
-      document.getElementById('dice-result').innerText = `🎲 Sacaste un ${roll}`;
+    // EVENTO DE TOCAR LA PANTALLA/ÁREA DEL DADO
+    diceArea.addEventListener('click', handleDiceClick);
 
+    function startDiceSpinning() {
+      if (isSpinning) return;
+      isSpinning = true;
+      diceDisplay.classList.add('dice-spinning');
+      tapPrompt.classList.remove('hidden');
+      document.getElementById('dice-result').innerText = "";
+
+      let count = 0;
+      diceInterval = setInterval(() => {
+        count = (count + 1) % 6;
+        diceDisplay.innerText = diceIcons[count];
+        playSound('tick');
+      }, 70);
+    }
+
+    function stopDiceSpinning() {
+      clearInterval(diceInterval);
+      isSpinning = false;
+      diceDisplay.classList.remove('dice-spinning');
+      tapPrompt.classList.add('hidden');
+    }
+
+    async function handleDiceClick() {
+      // Solo actuar si es el turno de este jugador y el dado está girando
       const snapshot = await get(ref(db, 'rooms/' + roomCode));
       const data = snapshot.val();
+      const players = Object.values(data.players || {});
+      const currentPlayer = players.find(p => p.order === data.currentTurn);
+
+      if (!currentPlayer || currentPlayer.id !== playerId || !isSpinning) return;
+
+      stopDiceSpinning();
+      playSound('dice');
+
+      const roll = Math.floor(Math.random() * 6) + 1;
+      diceDisplay.innerText = diceIcons[roll - 1];
+      document.getElementById('dice-result').innerText = `🎲 ¡Sacaste un ${roll}!`;
+
       const me = data.players[playerId];
-      
       let newPos = me.position + roll;
       if (newPos > 100) newPos = 100;
       pendingPosition = newPos;
 
-      if (questionCells.includes(newPos)) {
-        setTimeout(() => playSound('question'), 200);
-        const qIndex = Math.floor(Math.random() * questions.length);
-        currentQuestion = questions[qIndex];
-        showQuestionModal(currentQuestion);
-      } else if (boostCells.includes(newPos)) {
-        setTimeout(() => playSound('boost'), 200);
-        alert("🚀 ¡Llegó el Recreo! Avanzas 3 casillas adicionales.");
-        newPos = Math.min(100, newPos + 3);
-        await finishTurn(newPos, data);
-      } else if (trapCells.includes(newPos)) {
-        setTimeout(() => playSound('trap'), 200);
-        alert("🛑 ¡Te enviaron a Coordinación! Retrocedes 3 casillas.");
-        newPos = Math.max(1, newPos - 3);
-        await finishTurn(newPos, data);
-      } else {
-        await finishTurn(newPos, data);
-      }
-    });
+      setTimeout(async () => {
+        if (questionCells.includes(newPos)) {
+          playSound('question');
+          const qIndex = Math.floor(Math.random() * questions.length);
+          currentQuestion = questions[qIndex];
+          showQuestionModal(currentQuestion);
+        } else if (boostCells.includes(newPos)) {
+          playSound('boost');
+          alert("🚀 ¡Llegó el Recreo! Avanzas 3 casillas adicionales.");
+          newPos = Math.min(100, newPos + 3);
+          await finishTurn(newPos, data);
+        } else if (trapCells.includes(newPos)) {
+          playSound('trap');
+          alert("🛑 ¡Te enviaron a Coordinación! Retrocedes 3 casillas.");
+          newPos = Math.max(1, newPos - 3);
+          await finishTurn(newPos, data);
+        } else {
+          await finishTurn(newPos, data);
+        }
+      }, 600);
+    }
 
     function initLobby() {
-      rulesModal.classList.remove('hidden'); // Muestra las reglas al entrar a la sala
+      rulesModal.classList.remove('hidden');
       listenToRoom();
       showScreen(screenLobby);
       document.getElementById('display-room-code').innerText = roomCode;
@@ -648,12 +741,22 @@
     }
 
     function renderGameStatus(roomData, players) {
-      const currentTurnOrder = roomData.currentTurn;
-      const currentPlayer = players.find(p => p.order === currentTurnOrder);
+      const turnOrder = roomData.currentTurn;
+      const currentPlayer = players.find(p => p.order === turnOrder);
 
       if (currentPlayer) {
         document.getElementById('turn-display').innerText = `Turno de: ${currentPlayer.name}`;
-        document.getElementById('btn-roll').disabled = (currentPlayer.id !== playerId);
+        
+        // Si es el turno del jugador local y no está girando el dado
+        if (currentPlayer.id === playerId) {
+          if (!isSpinning && document.getElementById('question-modal').classList.contains('hidden')) {
+            startDiceSpinning();
+          }
+        } else {
+          stopDiceSpinning();
+          diceDisplay.innerText = "🎲";
+          document.getElementById('dice-result').innerText = "Esperando que tire...";
+        }
       }
 
       document.getElementById('player-board-list').innerHTML = players.map(p => 
